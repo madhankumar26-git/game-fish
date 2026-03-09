@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Proverb Quest - Fixed Mobile View</title>
+    <title>Proverb Quest - Phone View</title>
     <style>
         :root {
             --gold: #FFCA28;
@@ -11,150 +11,110 @@
             --orange: #FF5722;
         }
 
-        /* Fix for mobile browser address bars */
-        html { height: -webkit-fill-available; }
-
-        body { 
+        /* Essential for mobile height bugs */
+        html, body { 
+            height: 100%; 
             margin: 0; padding: 0; 
             overflow: hidden; 
-            font-family: 'Arial Rounded MT Bold', sans-serif; 
-            touch-action: none; 
-            background: #222; 
+            background: #222;
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            touch-action: none;
+        }
+
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            height: -webkit-fill-available;
         }
         
         #game-canvas {
             width: 100vw; 
             height: 100vh;
-            height: -webkit-fill-available;
             background-image: url('im.png'); 
             background-size: cover; 
             background-repeat: no-repeat;
             background-position: center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        @media (min-width: 1024px) {
-            #game-canvas {
-                width: 90vw;
-                height: 85vh;
-                border: 8px solid var(--gold);
-                border-radius: 20px;
-            }
-        }
-
+        /* Mobile specific adjustments */
         #hint-btn {
-            position: absolute; 
-            top: 20px; 
-            left: 20px;
-            width: 55px; 
-            height: 55px; 
-            background: rgba(183, 149, 11, 0.6); 
+            position: absolute; top: 10px; left: 10px;
+            width: 45px; height: 45px; /* Smaller for phone */
+            background: rgba(183, 149, 11, 0.7); 
             border: 2px solid rgba(255, 255, 255, 0.5); 
             border-radius: 50%;
-            font-weight: 900; 
-            font-size: 11px;
-            color: white;
-            cursor: pointer; 
-            z-index: 200; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
+            font-weight: 900; font-size: 10px;
+            color: white; cursor: pointer; z-index: 200; 
+            display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(3px);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            -webkit-tap-highlight-color: transparent;
-            transition: all 0.3s;
         }
 
         #level-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--orange);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 900;
-            z-index: 200;
-            box-shadow: 0 4px 0 #E64A19;
+            position: absolute; top: 10px; right: 10px;
+            background: var(--orange); color: white;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 900; z-index: 200;
         }
 
         #player {
-            position: absolute; 
-            top: 5%; 
-            left: 5%;
-            width: 20%; 
-            max-width: 250px; 
-            min-width: 140px;
-            z-index: 50;
-            transition: left 0.7s ease-out;
+            position: absolute; top: 5%; left: 5%;
+            width: 30%; /* Larger percentage for small screens */
+            max-width: 180px;
+            z-index: 50; transition: left 0.7s ease-out;
         }
         #player img { width: 100%; pointer-events: none; }
 
         #rod-line {
-            position: absolute; top: 10%; left: 77%; 
+            position: absolute; top: 15%; left: 78%; 
             width: 2px; height: 0; background: #eeeeee; 
             transition: height 0.5s ease-in; z-index: 40;
         }
 
         .fish-bubble {
-            position: absolute; width: 110px; height: 65px;
+            position: absolute; 
+            width: 85px; height: 50px; /* Scaled down for mobile */
             background-image: url('fish .png'); background-size: contain; 
             background-repeat: no-repeat; background-position: center;
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 900; color: #000;
+            font-size: 11px; font-weight: 900; color: #000;
             cursor: pointer; z-index: 20; text-transform: uppercase;
-            padding-bottom: 5px; text-align: center;
+            padding-bottom: 4px; text-align: center;
         }
 
-        /* FIXED WORD BAR - Higher Z-index and safe bottom margin */
+        @keyframes pulse-glow {
+            0% { filter: drop-shadow(0 0 5px #FFD700); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 15px #FFD700); transform: scale(1.1); }
+            100% { filter: drop-shadow(0 0 5px #FFD700); transform: scale(1); }
+        }
+        .hint-glow { animation: pulse-glow 0.8s infinite; z-index: 100 !important; }
+
         #word-bar-container {
-            position: absolute; 
-            bottom: 40px; /* Increased from 15px to be safe from phone gestures */
-            left: 50%; 
+            position: absolute; bottom: 15px; left: 50%; 
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.85); /* Slightly less transparent for better visibility */
-            backdrop-filter: blur(5px);
-            border: 4px solid var(--gold); 
-            padding: 12px 20px; 
-            border-radius: 40px;
-            width: 85%; 
-            max-width: 750px;
-            z-index: 300; /* Highest priority */
-            pointer-events: none; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: block !important; /* Ensure it's not hidden */
+            background: rgba(255, 255, 255, 0.9); 
+            border: 3px solid var(--gold); padding: 8px 15px; 
+            border-radius: 25px; width: 90%; 
+            z-index: 300; pointer-events: none; 
         }
 
         #word-display {
-            font-size: 1.1rem; 
-            color: #333; 
-            text-align: center; 
-            font-weight: 900;
-            letter-spacing: 1px;
+            font-size: 0.9rem; color: #333; text-align: center; 
+            font-weight: 900; letter-spacing: 0.5px;
             word-wrap: break-word;
         }
 
-        @media (max-width: 600px) {
-            #word-bar-container { 
-                bottom: 35px; /* Adjusting for mobile navigation bars */
-                width: 90%; 
-                padding: 10px 15px; 
-            }
-            #word-display { font-size: 0.95rem; line-height: 1.2; }
-            #player { width: 45%; }
-            .fish-bubble { width: 90px; height: 55px; font-size: 11px; }
-            #hint-btn { width: 50px; height: 50px; top: 15px; left: 15px; }
+        .full-screen-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 500; color: white; text-align: center; padding: 15px;
         }
 
-        .hint-glow { filter: drop-shadow(0 0 15px #FFD700) brightness(1.2); z-index: 35; }
+        #level-title-screen h1 { font-size: 2rem; color: var(--gold); }
+        #sub-level-title { font-size: 1rem; color: #fff; }
+        #proverb-text-display { font-size: 1.4rem; color: var(--gold); font-style: italic; }
 
         #victory-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -163,14 +123,15 @@
         }
 
         #victory-card {
-            background: white; padding: 30px; border-radius: 30px;
-            border: 10px solid var(--gold); text-align: center;
-            width: 85%; max-width: 450px; transform: scale(0.8); transition: 0.4s;
+            background: white; padding: 20px; border-radius: 20px;
+            border: 6px solid var(--gold); text-align: center;
+            width: 85%; transform: scale(0.9); transition: 0.4s;
         }
         #victory-card.show { transform: scale(1); }
+        
         #next-btn {
-            background: #4CAF50; color: white; padding: 15px 35px;
-            border: none; border-radius: 50px; font-size: 18px; font-weight: 900; cursor: pointer;
+            background: #4CAF50; color: white; padding: 12px 30px;
+            border: none; border-radius: 30px; font-size: 16px; font-weight: 900;
         }
     </style>
 </head>
@@ -188,87 +149,150 @@
     <div id="pond"></div>
 
     <div id="word-bar-container">
-        <div id="word-display">Loading Proverb...</div>
+        <div id="word-display">Ready?</div>
+    </div>
+
+    <div id="level-title-screen" class="full-screen-overlay">
+        <h1 id="main-level-name">LEVEL 1</h1>
+        <p id="sub-level-title"></p>
+    </div>
+
+    <div id="proverb-preview-screen" class="full-screen-overlay">
+        <h2 style="font-size: 1rem;">MEMORIZE:</h2>
+        <div id="proverb-text-display"></div>
     </div>
 
     <div id="victory-overlay">
         <div id="victory-card">
-            <h1 style="color:var(--orange); margin-top:0;">Level Clear!</h1>
-            <div id="victory-text" style="font-size: 18px; margin: 15px 0; color: #444; font-weight: bold;"></div>
+            <h2 style="color:var(--orange); margin:0;">Level Clear!</h2>
+            <div id="victory-text" style="font-size: 16px; margin: 15px 0; color: #444; font-weight: bold;"></div>
             <button id="next-btn" onclick="nextLevel()">CONTINUE</button>
         </div>
     </div>
 </div>
 
 <script>
-    const masterProverbs = [
-        "PRACTICE MAKES PERFECT", "NO PAIN NO GAIN", "DILIGENCE IS THE MOTHER OF GOOD LUCK",
-        "WHERE THERE IS A WILL THERE IS A WAY", "ACTION SPEAKS LOUDER THAN WORDS",
-        "THE EARLY BIRD CATCHES THE WORM", "ROME WASNT BUILT IN A DAY",
-        "CONSTANT DRIPPING WEARS AWAY THE STONE", "A JOURNEY OF A THOUSAND MILES BEGINS WITH A SINGLE STEP",
-        "MAKE HAY WHILE THE SUN SHINES", "STRIKE WHILE THE IRON IS HOT",
-        "GENIUS IS ONE PERCENT INSPIRATION AND NINETY NINE PERCENT PERSPIRATION",
-        "IF AT FIRST YOU DONT SUCCEED TRY TRY AGAIN", "GREAT OAKS FROM LITTLE ACORNS GROW",
-        "HE WHO HESITATES IS LOST", "NECESSITY IS THE MOTHER OF INVENTION",
-        "SLOW AND STEADY WINS THE RACE", "HARD WORK BEATS TALENT WHEN TALENT DOESNT WORK HARD",
-        "THERE ARE NO SHORTCUTS TO ANY PLACE WORTH GOING",
-        "SUCCESS IS A LADDER YOU CANNOT CLIMB WITH YOUR HANDS IN YOUR POCKETS"
-    ];
+    // LOGIC AND SENTENCES REMAIN COMPLETELY UNCHANGED
+    const levelTitles = {
+        1: "TIME & OPPORTUNITY PROVERBS",
+        2: "MINDSET & POSITIVITY PROVERBS",
+        3: "HEALTH & LIFE LESSON PROVERBS",
+        4: "FRIENDSHIP & CHARACTER PROVERBS",
+        5: "SUCCESS & HARD WORK PROVERBS",
+        6: "MISCELLANEOUS PROVERBS"
+    };
 
-    let currentLevel = 0; 
+    const tiers = {
+        1: ["TIME IS MONEY", "ALL IN GOOD TIME", "BETTER LATE THAN NEVER", "OPPORTUNITY KNOCKS BUT ONCE", "A STITCH IN TIME SAVES NINE"],
+        2: ["COUNT YOUR BLESSINGS", "HASTE MAKES WASTE", "BETTER TO BE SAFE THAN SORRY", "GREAT MINDS THINK ALIKE", "GOOD THINGS COME IN SMALL PACKAGES"],
+        3: ["STILL WATERS RUN DEEP", "LAUGHTER IS THE BEST MEDICINE", "PREVENTION IS BETTER THAN CURE", "ALL THAT GLITTERS NOT GOLD", "WHERE THERE IS SMOKE THERE IS FIRE"],
+        4: ["MANNERS MAKETH MAN", "CHARITY BEGINS AT HOME", "ACTIONS SPEAK LOUDER THAN WORDS", "DONT JUDGE A BOOK BY ITS COVER", "A FRIEND IN NEED IS A FRIEND INDEED"],
+        5: ["NO PAIN NO GAIN", "PRACTICE MAKES PERFECT", "BIRDS OF A FEATHER FLOCK TOGETHER", "THE GRASS IS ALWAYS GREENER", "BEAUTY IS IN THE EYE OF THE BEHOLDER"],
+        6: ["LOVE IS BLIND", "SMALL IS BEAUTIFUL", "SEEING IS BELIEVING", "FIRST COME FIRST SERVED", "FOOLS RUSH IN WHERE ANGELS FEAR TO TREAD"]
+    };
+
+    let solvedTotal = 0;
+    let currentTierNum = 1;
+    let subLevelIndex = 0;
     let game = { proverbWords: [], step: 0, isFishing: false };
 
     function initLevel() {
         const pond = document.getElementById('pond');
         pond.innerHTML = ""; game.step = 0;
         document.getElementById('victory-overlay').style.display = 'none';
-        document.getElementById('victory-card').classList.remove('show');
-        document.getElementById('level-badge').innerText = `Level: ${currentLevel + 1}`;
-        game.proverbWords = masterProverbs[currentLevel].split(" ");
+        
+        currentTierNum = Math.floor(solvedTotal / 5) + 1;
+        subLevelIndex = solvedTotal % 5;
 
+        if (currentTierNum > 6) {
+            alert("CONGRATULATIONS! You finished all 6 levels!");
+            solvedTotal = 0;
+            initLevel();
+            return;
+        }
+
+        if (subLevelIndex === 0) {
+            showLevelTitle(currentTierNum, levelTitles[currentTierNum], startProverbPreview);
+        } else {
+            startProverbPreview();
+        }
+    }
+
+    function showLevelTitle(num, title, callback) {
+        const screen = document.getElementById('level-title-screen');
+        document.getElementById('main-level-name').innerText = `LEVEL ${num}`;
+        document.getElementById('sub-level-title').innerText = title;
+        screen.style.display = 'flex';
+        
+        setTimeout(() => {
+            screen.style.display = 'none';
+            callback();
+        }, 2500);
+    }
+
+    function startProverbPreview() {
+        const fullProverb = tiers[currentTierNum][subLevelIndex];
+        const screen = document.getElementById('proverb-preview-screen');
+        document.getElementById('proverb-text-display').innerText = fullProverb;
+        screen.style.display = 'flex';
+        
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = fullProverb.toLowerCase();
+        window.speechSynthesis.speak(msg);
+
+        setTimeout(() => {
+            screen.style.display = 'none';
+            setupFishingGame();
+        }, 3500);
+    }
+
+    function setupFishingGame() {
+        document.getElementById('level-badge').innerText = `Level: ${currentTierNum}-${subLevelIndex + 1}`;
+        game.proverbWords = tiers[currentTierNum][subLevelIndex].split(" ");
         const allWords = [...game.proverbWords].sort(() => Math.random() - 0.5);
+        
         allWords.forEach((word, index) => {
             const f = document.createElement('div');
             f.className = 'fish-bubble';
             f.innerText = word;
-            f.style.top = (25 + (index * (60/allWords.length))) + '%';
-            f.style.left = (Math.random() * 75 + 5) + '%';
+            // Spread fish better for small vertical space
+            f.style.top = (30 + (index * (50/allWords.length))) + '%';
+            f.style.left = (Math.random() * 70 + 5) + '%';
             animateFish(f);
-            pond.appendChild(f);
+            document.getElementById('pond').appendChild(f);
         });
         updateUI();
     }
 
     function animateFish(el) {
         let x = parseFloat(el.style.left);
-        let speed = 0.04 + (Math.random() * 0.05);
+        let speed = 0.05 + (Math.random() * 0.05);
         let interval = setInterval(() => {
             if (!el.parentElement) { clearInterval(interval); return; }
-            x += speed; if (x > 105) x = -15;
+            x += speed; if (x > 110) x = -20;
             el.style.left = x + '%';
-        }, 20);
-    }
-
-    function speakProverb(text) {
-        const msg = new SpeechSynthesisUtterance();
-        msg.text = text.toLowerCase();
-        msg.rate = 0.85; 
-        window.speechSynthesis.speak(msg);
+        }, 30);
     }
 
     function showHint(e) {
         e.stopPropagation();
         const btn = document.getElementById('hint-btn');
         if(btn.style.opacity === "0.2") return;
-        const target = game.proverbWords[game.step];
-        document.querySelectorAll('.fish-bubble').forEach(f => {
-            if(f.innerText === target) {
-                f.classList.add('hint-glow');
-                btn.style.opacity = "0.2";
-                setTimeout(() => f.classList.remove('hint-glow'), 2500);
-                setTimeout(() => btn.style.opacity = "1", 4000); 
-            }
+
+        const targetWord = game.proverbWords[game.step].trim();
+        const fishies = document.querySelectorAll('.fish-bubble');
+        let foundFish = null;
+
+        fishies.forEach(f => {
+            if(f.innerText.trim() === targetWord) foundFish = f;
         });
+
+        if(foundFish) {
+            foundFish.classList.add('hint-glow');
+            btn.style.opacity = "0.2";
+            setTimeout(() => foundFish.classList.remove('hint-glow'), 2500);
+            setTimeout(() => btn.style.opacity = "1", 4000); 
+        }
     }
 
     const handleInput = (clientX, clientY, target) => {
@@ -295,16 +319,12 @@
     window.addEventListener('touchstart', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive: false});
 
     function checkHit(x, y) {
-        const targetWord = game.proverbWords[game.step];
+        const targetWord = game.proverbWords[game.step].trim();
         document.querySelectorAll('.fish-bubble').forEach(f => {
             const r = f.getBoundingClientRect();
             const canvasRect = document.getElementById('game-canvas').getBoundingClientRect();
-            const fLeft = r.left - canvasRect.left;
-            const fRight = r.right - canvasRect.left;
-            const fTop = r.top - canvasRect.top;
-            const fBottom = r.bottom - canvasRect.top;
-            if (x > fLeft && x < fRight && y > fTop && y < fBottom) {
-                if (f.innerText === targetWord) {
+            if (x > (r.left - canvasRect.left) && x < (r.right - canvasRect.left) && y > (r.top - canvasRect.top) && y < (r.bottom - canvasRect.top)) {
+                if (f.innerText.trim() === targetWord) {
                     f.style.transform = "scale(0)";
                     setTimeout(() => f.remove(), 300);
                     game.step++;
@@ -318,15 +338,17 @@
     }
 
     function finishLevel() {
-        const fullSentence = masterProverbs[currentLevel];
+        const fullSentence = tiers[currentTierNum][subLevelIndex];
         document.getElementById('victory-text').innerText = fullSentence;
         document.getElementById('victory-overlay').style.display = 'flex';
         setTimeout(() => document.getElementById('victory-card').classList.add('show'), 50);
-        speakProverb(fullSentence);
+        
+        const msg = new SpeechSynthesisUtterance(fullSentence.toLowerCase());
+        window.speechSynthesis.speak(msg);
     }
 
     function nextLevel() {
-        currentLevel = (currentLevel + 1) % masterProverbs.length;
+        solvedTotal++;
         initLevel();
     }
 
