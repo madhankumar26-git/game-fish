@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Proverb Quest - Voice Optimized</title>
+    <title>Proverb Quest - Super Hint Edition</title>
     <style>
         :root {
             --gold: #FFCA28;
             --dark-gold: #FBC02D;
             --orange: #FF5722;
+            --blue: #2196F3;
         }
 
         html { height: -webkit-fill-available; }
@@ -40,37 +41,29 @@
         }
 
         @media (min-width: 1024px) {
-            #game-canvas {
-                width: 90vw;
-                height: 85vh;
-                border: 8px solid var(--gold);
-                border-radius: 20px;
-            }
+            #game-canvas { width: 90vw; height: 85vh; border: 8px solid var(--gold); border-radius: 20px; }
         }
 
-        @media (max-width: 1023px) and (min-width: 601px) {
-            #game-canvas {
-                width: 95vw;
-                height: 90vh;
-                border: 6px solid var(--gold);
-                border-radius: 15px;
-            }
-            .fish-bubble { width: 120px; height: 70px; font-size: 14px; }
-            #hint-btn { width: 58px; height: 58px; }
-        }
-
-        #hint-btn {
+        /* Control Buttons Container */
+        .controls {
             position: absolute; top: 20px; left: 20px;
-            width: 55px; height: 55px; 
-            background: rgba(183, 149, 11, 0.6); 
+            display: flex; flex-direction: column; gap: 10px; z-index: 200;
+        }
+
+        .btn-game {
+            width: 65px; height: 65px; 
             border: 2px solid rgba(255, 255, 255, 0.5); 
             border-radius: 50%;
-            font-weight: 900; font-size: 11px;
-            color: white; cursor: pointer; z-index: 200; 
+            font-weight: 900; font-size: 10px;
+            color: white; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(3px);
             transition: all 0.3s;
+            text-align: center;
         }
+
+        #hint-btn { background: rgba(183, 149, 11, 0.6); }
+        #super-hint-btn { background: rgba(33, 150, 243, 0.7); font-size: 9px; }
 
         #level-badge {
             position: absolute; top: 20px; right: 20px;
@@ -133,7 +126,6 @@
         }
 
         #level-title-screen h1 { font-size: 3rem; color: var(--gold); margin: 0; }
-        #proverb-text-display { font-size: 2rem; color: var(--gold); font-style: italic; margin-top: 20px; }
 
         #victory-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -151,23 +143,17 @@
             background: #4CAF50; color: white; padding: 15px 35px;
             border: none; border-radius: 50px; font-size: 18px; font-weight: 900; cursor: pointer;
         }
-
-        @media (max-width: 600px) {
-            #word-bar-container { bottom: 35px; width: 90%; }
-            #player { width: 45%; }
-            #level-title-screen h1 { font-size: 2.2rem; }
-            #proverb-text-display { font-size: 1.4rem; }
-            .fish-bubble { width: 130px; height: 80px; fogitnt-size: 14px; }
-            #hint-btn { width: 60px; height: 60px; font-size: 12px; }
-            #level-badge { font-size: 0.9rem; padding: 6px 15px; }
-        }
     </style>
 </head>
 <body>
 
 <div id="game-canvas">
     <div id="level-badge">Level: 1</div>
-    <div id="hint-btn" onclick="showHint(event)">HINT</div>
+    
+    <div class="controls">
+        <div id="hint-btn" class="btn-game" onclick="showHint(event)">HINT</div>
+        <div id="super-hint-btn" class="btn-game" onclick="showSuperHint(event)">SUPER<br>HINT (2)</div>
+    </div>
     
     <div id="player">
         <div id="rod-line"></div>
@@ -185,11 +171,6 @@
         <p id="sub-level-title" style="font-size: 1.5rem; color: #fff;"></p>
     </div>
 
-    <div id="proverb-preview-screen" class="full-screen-overlay">
-        <h2 style="font-size: 1.2rem;">MEMORIZE THE PROVERB:</h2>
-        <div id="proverb-text-display"></div>
-    </div>
-
     <div id="victory-overlay">
         <div id="victory-card">
             <h1 style="color:var(--orange); margin-top:0;">Level Clear!</h1>
@@ -201,12 +182,9 @@
 
 <script>
     const levelTitles = {
-        1: "TIME & OPPORTUNITY PROVERBS",
-        2: "MINDSET & POSITIVITY PROVERBS",
-        3: "HEALTH & LIFE LESSON PROVERBS",
-        4: "FRIENDSHIP & CHARACTER PROVERBS",
-        5: "SUCCESS & HARD WORK PROVERBS",
-        6: "MISCELLANEOUS PROVERBS"
+        1: "TIME & OPPORTUNITY PROVERBS", 2: "MINDSET & POSITIVITY PROVERBS",
+        3: "HEALTH & LIFE LESSON PROVERBS", 4: "FRIENDSHIP & CHARACTER PROVERBS",
+        5: "SUCCESS & HARD WORK PROVERBS", 6: "MISCELLANEOUS PROVERBS"
     };
 
     const tiers = {
@@ -216,34 +194,31 @@
         4: ["MANNERS MAKETH MAN", "CHARITY BEGINS AT HOME", "ACTIONS SPEAK LOUDER THAN WORDS", "DONT JUDGE A BOOK BY ITS COVER", "A FRIEND IN NEED IS A FRIEND INDEED"],
         5: ["NO PAIN NO GAIN", "PRACTICE MAKES PERFECT", "BIRDS OF A FEATHER FLOCK TOGETHER", "THE GRASS IS ALWAYS GREENER", "BEAUTY IS IN THE EYE OF THE BEHOLDER"],
         6: ["LOVE IS BLIND", "SMALL IS BEAUTIFUL", "SEEING IS BELIEVING", "FIRST COME FIRST SERVED", "FOOLS RUSH IN WHERE ANGELS FEAR TO TREAD"]
-       
     };
 
     let solvedTotal = 0;
     let currentTierNum = 1;
     let subLevelIndex = 0;
-    let game = { proverbWords: [], step: 0, isFishing: false };
+    let superHintCount = 2;
+    let game = { proverbWords: [], step: 0, isFishing: false, isShowingSuperHint: false };
 
     function initLevel() {
         const pond = document.getElementById('pond');
         pond.innerHTML = ""; game.step = 0;
+        superHintCount = 2; // Reset super hint each sub-level
+        updateSuperHintButton();
+        
         document.getElementById('victory-overlay').style.display = 'none';
         
         currentTierNum = Math.floor(solvedTotal / 5) + 1;
         subLevelIndex = solvedTotal % 5;
 
         if (currentTierNum > 6) {
-            alert("CONGRATULATIONS! You finished all 6 levels!");
-            solvedTotal = 0;
-            initLevel();
-            return;
+            alert("CONGRATULATIONS!");
+            solvedTotal = 0; initLevel(); return;
         }
 
-        if (subLevelIndex === 0) {
-            showLevelTitle(currentTierNum, levelTitles[currentTierNum], startProverbPreview);
-        } else {
-            startProverbPreview();
-        }
+        showLevelTitle(currentTierNum, levelTitles[currentTierNum], setupFishingGame);
     }
 
     function showLevelTitle(num, title, callback) {
@@ -251,30 +226,10 @@
         document.getElementById('main-level-name').innerText = `LEVEL ${num}`;
         document.getElementById('sub-level-title').innerText = title;
         screen.style.display = 'flex';
-        
-        // Voice is NOT called here anymore.
-
         setTimeout(() => {
             screen.style.display = 'none';
             callback();
-        }, 2500);
-    }
-
-    function startProverbPreview() {
-        const fullProverb = tiers[currentTierNum][subLevelIndex];
-        const screen = document.getElementById('proverb-preview-screen');
-        document.getElementById('proverb-text-display').innerText = fullProverb;
-        screen.style.display = 'flex';
-        
-        // Voice ONLY triggers for the proverb itself
-        const msg = new SpeechSynthesisUtterance();
-        msg.text = fullProverb.toLowerCase();
-        window.speechSynthesis.speak(msg);
-
-        setTimeout(() => {
-            screen.style.display = 'none';
-            setupFishingGame();
-        }, 3500);
+        }, 2000);
     }
 
     function setupFishingGame() {
@@ -325,8 +280,33 @@
         }
     }
 
+    function showSuperHint(e) {
+        e.stopPropagation();
+        if (superHintCount <= 0 || game.isShowingSuperHint) return;
+
+        superHintCount--;
+        game.isShowingSuperHint = true;
+        updateSuperHintButton();
+
+        const originalText = document.getElementById('word-display').innerText;
+        document.getElementById('word-display').innerText = tiers[currentTierNum][subLevelIndex];
+        document.getElementById('word-display').style.color = "var(--blue)";
+
+        setTimeout(() => {
+            game.isShowingSuperHint = false;
+            document.getElementById('word-display').style.color = "#333";
+            updateUI();
+        }, 3000);
+    }
+
+    function updateSuperHintButton() {
+        const btn = document.getElementById('super-hint-btn');
+        btn.innerHTML = `SUPER<br>HINT (${superHintCount})`;
+        btn.style.opacity = superHintCount <= 0 ? "0.3" : "1";
+    }
+
     const handleInput = (clientX, clientY, target) => {
-        if (game.isFishing || target.id === 'hint-btn' || target.id === 'next-btn') return;
+        if (game.isFishing || target.closest('.controls') || target.id === 'next-btn') return;
         game.isFishing = true;
         const canvas = document.getElementById('game-canvas');
         const rect = canvas.getBoundingClientRect();
@@ -372,8 +352,6 @@
         document.getElementById('victory-text').innerText = fullSentence;
         document.getElementById('victory-overlay').style.display = 'flex';
         setTimeout(() => document.getElementById('victory-card').classList.add('show'), 50);
-        
-        // Voice speaks the completed proverb as a reward
         const msg = new SpeechSynthesisUtterance(fullSentence.toLowerCase());
         window.speechSynthesis.speak(msg);
     }
@@ -384,6 +362,7 @@
     }
 
     function updateUI() {
+        if(game.isShowingSuperHint) return;
         let displayStr = "";
         for(let i=0; i < game.proverbWords.length; i++) {
             displayStr += (i < game.step) ? game.proverbWords[i] + " " : "____ ";
