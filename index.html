@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Proverb Quest - Darker Hint Button</title>
+    <style>
+        :root {
+            --gold: #FFCA28;
+            --dark-gold: #FBC02D;
+            --orange: #FF5722;
+        }
+
+        body, html { 
+            margin: 0; padding: 0; 
+            overflow: hidden; 
+            font-family: 'Arial Rounded MT Bold', sans-serif; 
+            touch-action: none; 
+            background: #222; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        #game-canvas {
+            width: 100vw; 
+            height: 100vh;
+            background-image: url('im.png'); 
+            background-size: cover; 
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        @media (min-width: 1024px) {
+            #game-canvas {
+                width: 90vw;
+                height: 85vh;
+                border: 8px solid var(--gold);
+                border-radius: 20px;
+            }
+        }
+
+        /* HINT BUTTON - Top Left, Small, and Semi-Transparent Darker Gold */
+        #hint-btn {
+            position: absolute; 
+            top: 20px; 
+            left: 20px;
+            width: 55px; 
+            height: 55px; 
+            /* CHANGE: Slightly darker amber/gold with opacity */
+            background: rgba(183, 149, 11, 0.6); 
+            border: 2px solid rgba(255, 255, 255, 0.5); 
+            border-radius: 50%;
+            font-weight: 900; 
+            font-size: 11px;
+            color: white;
+            cursor: pointer; 
+            z-index: 150; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            backdrop-filter: blur(3px);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.3s;
+        }
+
+        #hint-btn:active { transform: scale(0.9); background: rgba(183, 149, 11, 0.9); }
+
+        #level-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--orange);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 900;
+            z-index: 110;
+            box-shadow: 0 4px 0 #E64A19;
+        }
+
+        #player {
+            position: absolute; 
+            top: 5%; 
+            left: 5%;
+            width: 20%; 
+            max-width: 250px; 
+            min-width: 140px;
+            z-index: 50;
+            transition: left 0.7s ease-out;
+        }
+        #player img { width: 100%; pointer-events: none; }
+
+        #rod-line {
+            position: absolute; top: 10%; left: 77%; 
+            width: 2px; height: 0; background: #eeeeee; 
+            transition: height 0.5s ease-in; z-index: 40;
+        }
+
+        .fish-bubble {
+            position: absolute; width: 110px; height: 65px;
+            background-image: url('fish .png'); background-size: contain; 
+            background-repeat: no-repeat; background-position: center;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 900; color: #000;
+            cursor: pointer; z-index: 20; text-transform: uppercase;
+            padding-bottom: 5px; text-align: center;
+        }
+
+        #word-bar-container {
+            position: absolute; 
+            bottom: 15px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.6); 
+            backdrop-filter: blur(5px);
+            border: 4px solid var(--gold); 
+            padding: 10px 20px; 
+            border-radius: 40px;
+            width: 85%; 
+            max-width: 750px;
+            z-index: 100;
+            pointer-events: none; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        #word-display {
+            font-size: 1.1rem; 
+            color: #333; 
+            text-align: center; 
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 600px) {
+            #word-bar-container { bottom: 10px; width: 92%; padding: 8px 12px; }
+            #word-display { font-size: 0.9rem; }
+            #player { width: 45%; }
+            .fish-bubble { width: 90px; height: 55px; font-size: 11px; }
+            #hint-btn { width: 50px; height: 50px; top: 15px; left: 15px; }
+        }
+
+        .hint-glow { filter: drop-shadow(0 0 15px #FFD700) brightness(1.2); z-index: 35; }
+
+        /* VICTORY MODAL */
+        #victory-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none;
+            justify-content: center; align-items: center; z-index: 200;
+        }
+
+        #victory-card {
+            background: white; padding: 30px; border-radius: 30px;
+            border: 10px solid var(--gold); text-align: center;
+            width: 85%; max-width: 450px; transform: scale(0.8); transition: 0.4s;
+        }
+        #victory-card.show { transform: scale(1); }
+        #next-btn {
+            background: #4CAF50; color: white; padding: 15px 35px;
+            border: none; border-radius: 50px; font-size: 18px; font-weight: 900; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-canvas">
+    <div id="level-badge">Level: 1</div>
+    <div id="hint-btn" onclick="showHint(event)">HINT</div>
+    
+    <div id="player">
+        <div id="rod-line"></div>
+        <img src="pandaa.png" id="cat-boat-img"> 
+    </div>
+    
+    <div id="pond"></div>
+
+    <div id="word-bar-container">
+        <div id="word-display"></div>
+    </div>
+
+    <div id="victory-overlay">
+        <div id="victory-card">
+            <h1 style="color:var(--orange); margin-top:0;">Level Clear!</h1>
+            <div id="victory-text" style="font-size: 18px; margin: 15px 0; color: #444; font-weight: bold;"></div>
+            <button id="next-btn" onclick="nextLevel()">CONTINUE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const masterProverbs = [
+        "PRACTICE MAKES PERFECT", "NO PAIN NO GAIN", "DILIGENCE IS THE MOTHER OF GOOD LUCK",
+        "WHERE THERE IS A WILL THERE IS A WAY", "ACTION SPEAKS LOUDER THAN WORDS",
+        "THE EARLY BIRD CATCHES THE WORM", "ROME WASNT BUILT IN A DAY",
+        "CONSTANT DRIPPING WEARS AWAY THE STONE", "A JOURNEY OF A THOUSAND MILES BEGINS WITH A SINGLE STEP",
+        "MAKE HAY WHILE THE SUN SHINES", "STRIKE WHILE THE IRON IS HOT",
+        "GENIUS IS ONE PERCENT INSPIRATION AND NINETY NINE PERCENT PERSPIRATION",
+        "IF AT FIRST YOU DONT SUCCEED TRY TRY AGAIN", "GREAT OAKS FROM LITTLE ACORNS GROW",
+        "HE WHO HESITATES IS LOST", "NECESSITY IS THE MOTHER OF INVENTION",
+        "SLOW AND STEADY WINS THE RACE", "HARD WORK BEATS TALENT WHEN TALENT DOESNT WORK HARD",
+        "THERE ARE NO SHORTCUTS TO ANY PLACE WORTH GOING",
+        "SUCCESS IS A LADDER YOU CANNOT CLIMB WITH YOUR HANDS IN YOUR POCKETS"
+    ];
+
+    let currentLevel = 0; 
+    let game = { proverbWords: [], step: 0, isFishing: false };
+
+    function initLevel() {
+        const pond = document.getElementById('pond');
+        pond.innerHTML = ""; game.step = 0;
+        document.getElementById('victory-overlay').style.display = 'none';
+        document.getElementById('victory-card').classList.remove('show');
+        document.getElementById('level-badge').innerText = `Level: ${currentLevel + 1}`;
+        game.proverbWords = masterProverbs[currentLevel].split(" ");
+
+        const allWords = [...game.proverbWords].sort(() => Math.random() - 0.5);
+        allWords.forEach((word, index) => {
+            const f = document.createElement('div');
+            f.className = 'fish-bubble';
+            f.innerText = word;
+            f.style.top = (25 + (index * (60/allWords.length))) + '%';
+            f.style.left = (Math.random() * 75 + 5) + '%';
+            animateFish(f);
+            pond.appendChild(f);
+        });
+        updateUI();
+    }
+
+    function animateFish(el) {
+        let x = parseFloat(el.style.left);
+        let speed = 0.04 + (Math.random() * 0.05);
+        setInterval(() => {
+            x += speed; if (x > 105) x = -15;
+            el.style.left = x + '%';
+        }, 20);
+    }
+
+    function speakProverb(text) {
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = text.toLowerCase();
+        msg.rate = 0.85; 
+        window.speechSynthesis.speak(msg);
+    }
+
+    function showHint(e) {
+        e.stopPropagation();
+        const btn = document.getElementById('hint-btn');
+        // CHANGE: Check opacity based on the darker gold background
+        if(btn.style.opacity === "0.2") return;
+        const target = game.proverbWords[game.step];
+        document.querySelectorAll('.fish-bubble').forEach(f => {
+            if(f.innerText === target) {
+                f.classList.add('hint-glow');
+                btn.style.opacity = "0.2";
+                setTimeout(() => f.classList.remove('hint-glow'), 2500);
+                setTimeout(() => btn.style.opacity = "1", 4000); 
+            }
+        });
+    }
+
+    const handleInput = (clientX, clientY, target) => {
+        if (game.isFishing || target.id === 'hint-btn' || target.id === 'next-btn') return;
+        game.isFishing = true;
+        const canvas = document.getElementById('game-canvas');
+        const rect = canvas.getBoundingClientRect();
+        const relativeX = clientX - rect.left;
+        const relativeY = clientY - rect.top;
+        const player = document.getElementById('player');
+        const line = document.getElementById('rod-line');
+        player.style.left = (relativeX - (player.offsetWidth * 0.84)) + 'px';
+        setTimeout(() => {
+            line.style.height = (relativeY - (player.offsetTop + (player.offsetHeight * 0.1))) + 'px';
+            setTimeout(() => {
+                checkHit(relativeX, relativeY);
+                line.style.height = '0px';
+                setTimeout(() => game.isFishing = false, 500);
+            }, 500);
+        }, 600);
+    };
+
+    window.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY, e.target));
+    window.addEventListener('touchstart', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive: false});
+
+    function checkHit(x, y) {
+        const targetWord = game.proverbWords[game.step];
+        document.querySelectorAll('.fish-bubble').forEach(f => {
+            const r = f.getBoundingClientRect();
+            const canvasRect = document.getElementById('game-canvas').getBoundingClientRect();
+            const fLeft = r.left - canvasRect.left;
+            const fRight = r.right - canvasRect.left;
+            const fTop = r.top - canvasRect.top;
+            const fBottom = r.bottom - canvasRect.top;
+            if (x > fLeft && x < fRight && y > fTop && y < fBottom) {
+                if (f.innerText === targetWord) {
+                    f.style.transform = "scale(0)";
+                    game.step++;
+                    updateUI();
+                    if(game.step === game.proverbWords.length) finishLevel();
+                } else {
+                    f.style.color = "red"; setTimeout(() => f.style.color = "#000", 500);
+                }
+            }
+        });
+    }
+
+    function finishLevel() {
+        const fullSentence = masterProverbs[currentLevel];
+        document.getElementById('victory-text').innerText = fullSentence;
+        document.getElementById('victory-overlay').style.display = 'flex';
+        setTimeout(() => document.getElementById('victory-card').classList.add('show'), 50);
+        speakProverb(fullSentence);
+    }
+
+    function nextLevel() {
+        currentLevel = (currentLevel + 1) % masterProverbs.length;
+        initLevel();
+    }
+
+    function updateUI() {
+        let displayStr = "";
+        for(let i=0; i < game.proverbWords.length; i++) {
+            displayStr += (i < game.step) ? game.proverbWords[i] + " " : "____ ";
+        }
+        document.getElementById('word-display').innerText = displayStr;
+    }
+
+    initLevel();
+</script>
+</body>
+</html>
