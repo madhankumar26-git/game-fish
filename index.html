@@ -48,6 +48,17 @@
             }
         }
 
+        @media (max-width: 1023px) and (min-width: 601px) {
+            #game-canvas {
+                width: 95vw;
+                height: 90vh;
+                border: 6px solid var(--gold);
+                border-radius: 15px;
+            }
+            .fish-bubble { width: 120px; height: 70px; font-size: 14px; }
+            #hint-btn { width: 58px; height: 58px; }
+        }
+
         #hint-btn {
             position: absolute; top: 20px; left: 20px;
             width: 55px; height: 55px; 
@@ -146,6 +157,9 @@
             #player { width: 45%; }
             #level-title-screen h1 { font-size: 2.2rem; }
             #proverb-text-display { font-size: 1.4rem; }
+            .fish-bubble { width: 130px; height: 80px; fogitnt-size: 14px; }
+            #hint-btn { width: 60px; height: 60px; font-size: 12px; }
+            #level-badge { font-size: 0.9rem; padding: 6px 15px; }
         }
     </style>
 </head>
