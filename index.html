@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Proverb Quest - Darker Hint Button</title>
+    <title>Proverb Quest - Fixed Mobile View</title>
     <style>
         :root {
             --gold: #FFCA28;
@@ -11,7 +11,10 @@
             --orange: #FF5722;
         }
 
-        body, html { 
+        /* Fix for mobile browser address bars */
+        html { height: -webkit-fill-available; }
+
+        body { 
             margin: 0; padding: 0; 
             overflow: hidden; 
             font-family: 'Arial Rounded MT Bold', sans-serif; 
@@ -21,11 +24,13 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            height: -webkit-fill-available;
         }
         
         #game-canvas {
             width: 100vw; 
             height: 100vh;
+            height: -webkit-fill-available;
             background-image: url('im.png'); 
             background-size: cover; 
             background-repeat: no-repeat;
@@ -44,14 +49,12 @@
             }
         }
 
-        /* HINT BUTTON - Top Left, Small, and Semi-Transparent Darker Gold */
         #hint-btn {
             position: absolute; 
             top: 20px; 
             left: 20px;
             width: 55px; 
             height: 55px; 
-            /* CHANGE: Slightly darker amber/gold with opacity */
             background: rgba(183, 149, 11, 0.6); 
             border: 2px solid rgba(255, 255, 255, 0.5); 
             border-radius: 50%;
@@ -59,7 +62,7 @@
             font-size: 11px;
             color: white;
             cursor: pointer; 
-            z-index: 150; 
+            z-index: 200; 
             display: flex; 
             align-items: center; 
             justify-content: center;
@@ -68,8 +71,6 @@
             -webkit-tap-highlight-color: transparent;
             transition: all 0.3s;
         }
-
-        #hint-btn:active { transform: scale(0.9); background: rgba(183, 149, 11, 0.9); }
 
         #level-badge {
             position: absolute;
@@ -81,7 +82,7 @@
             border-radius: 30px;
             font-size: 1rem;
             font-weight: 900;
-            z-index: 110;
+            z-index: 200;
             box-shadow: 0 4px 0 #E64A19;
         }
 
@@ -113,21 +114,23 @@
             padding-bottom: 5px; text-align: center;
         }
 
+        /* FIXED WORD BAR - Higher Z-index and safe bottom margin */
         #word-bar-container {
             position: absolute; 
-            bottom: 15px; 
+            bottom: 40px; /* Increased from 15px to be safe from phone gestures */
             left: 50%; 
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.6); 
+            background: rgba(255, 255, 255, 0.85); /* Slightly less transparent for better visibility */
             backdrop-filter: blur(5px);
             border: 4px solid var(--gold); 
-            padding: 10px 20px; 
+            padding: 12px 20px; 
             border-radius: 40px;
             width: 85%; 
             max-width: 750px;
-            z-index: 100;
+            z-index: 300; /* Highest priority */
             pointer-events: none; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: block !important; /* Ensure it's not hidden */
         }
 
         #word-display {
@@ -136,11 +139,16 @@
             text-align: center; 
             font-weight: 900;
             letter-spacing: 1px;
+            word-wrap: break-word;
         }
 
         @media (max-width: 600px) {
-            #word-bar-container { bottom: 10px; width: 92%; padding: 8px 12px; }
-            #word-display { font-size: 0.9rem; }
+            #word-bar-container { 
+                bottom: 35px; /* Adjusting for mobile navigation bars */
+                width: 90%; 
+                padding: 10px 15px; 
+            }
+            #word-display { font-size: 0.95rem; line-height: 1.2; }
             #player { width: 45%; }
             .fish-bubble { width: 90px; height: 55px; font-size: 11px; }
             #hint-btn { width: 50px; height: 50px; top: 15px; left: 15px; }
@@ -148,11 +156,10 @@
 
         .hint-glow { filter: drop-shadow(0 0 15px #FFD700) brightness(1.2); z-index: 35; }
 
-        /* VICTORY MODAL */
         #victory-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); display: none;
-            justify-content: center; align-items: center; z-index: 200;
+            justify-content: center; align-items: center; z-index: 400;
         }
 
         #victory-card {
@@ -181,7 +188,7 @@
     <div id="pond"></div>
 
     <div id="word-bar-container">
-        <div id="word-display"></div>
+        <div id="word-display">Loading Proverb...</div>
     </div>
 
     <div id="victory-overlay">
@@ -235,7 +242,8 @@
     function animateFish(el) {
         let x = parseFloat(el.style.left);
         let speed = 0.04 + (Math.random() * 0.05);
-        setInterval(() => {
+        let interval = setInterval(() => {
+            if (!el.parentElement) { clearInterval(interval); return; }
             x += speed; if (x > 105) x = -15;
             el.style.left = x + '%';
         }, 20);
@@ -251,7 +259,6 @@
     function showHint(e) {
         e.stopPropagation();
         const btn = document.getElementById('hint-btn');
-        // CHANGE: Check opacity based on the darker gold background
         if(btn.style.opacity === "0.2") return;
         const target = game.proverbWords[game.step];
         document.querySelectorAll('.fish-bubble').forEach(f => {
@@ -299,6 +306,7 @@
             if (x > fLeft && x < fRight && y > fTop && y < fBottom) {
                 if (f.innerText === targetWord) {
                     f.style.transform = "scale(0)";
+                    setTimeout(() => f.remove(), 300);
                     game.step++;
                     updateUI();
                     if(game.step === game.proverbWords.length) finishLevel();
