@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Proverb Quest - Super Hint Edition</title>
+    <title>Proverb Quest - Grand Finale Edition</title>
     <style>
         :root {
             --gold: #FFCA28;
-            --dark-gold: #FBC02D;
             --orange: #FF5722;
-            --blue: #2196F3;
+            --blue: #00B0FF;
+            --green: #4CAF50;
         }
 
         html { height: -webkit-fill-available; }
@@ -20,60 +20,66 @@
             font-family: 'Arial Rounded MT Bold', sans-serif; 
             touch-action: none; 
             background: #222; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            height: -webkit-fill-available;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; height: -webkit-fill-available;
         }
         
         #game-canvas {
-            width: 100vw; 
-            height: 100vh;
-            height: -webkit-fill-available;
-            background-image: url('im.png'); 
-            background-size: cover; 
-            background-repeat: no-repeat;
-            background-position: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            width: 100vw; height: 100vh; height: -webkit-fill-available;
+            background-image: url('im.png'); background-size: cover; 
+            background-repeat: no-repeat; background-position: center;
+            position: relative; overflow: hidden;
         }
 
         @media (min-width: 1024px) {
             #game-canvas { width: 90vw; height: 85vh; border: 8px solid var(--gold); border-radius: 20px; }
         }
 
-        /* Control Buttons Container */
-        .controls {
-            position: absolute; top: 20px; left: 20px;
-            display: flex; flex-direction: column; gap: 10px; z-index: 200;
+        /* --- NEW INSTRUCTION STYLES --- */
+        #instruction-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; color: white; text-align: center; padding: 20px;
+            box-sizing: border-box;
+        }
+        .instruction-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px; border-radius: 20px; border: 2px solid var(--gold);
+            max-width: 500px;
+        }
+        /* ------------------------------ */
+
+        .top-controls {
+            position: absolute; top: 15px; left: 15px;
+            display: flex; flex-direction: row; gap: 10px; z-index: 200;
         }
 
-        .btn-game {
-            width: 65px; height: 65px; 
-            border: 2px solid rgba(255, 255, 255, 0.5); 
+        .action-btn {
+            width: 55px; height: 55px; 
+            border: 2px solid rgba(255, 255, 255, 0.6); 
             border-radius: 50%;
-            font-weight: 900; font-size: 10px;
+            font-weight: 900; font-size: 9px;
             color: white; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(3px);
-            transition: all 0.3s;
-            text-align: center;
+            backdrop-filter: blur(5px); transition: 0.3s;
+            text-align: center; line-height: 1.1;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
-        #hint-btn { background: rgba(183, 149, 11, 0.6); }
-        #super-hint-btn { background: rgba(33, 150, 243, 0.7); font-size: 9px; }
+        #hint-btn { background: rgba(183, 149, 11, 0.8); }
+        #super-hint-btn { background: rgba(0, 176, 255, 0.8); border-color: var(--blue); }
 
         #level-badge {
-            position: absolute; top: 20px; right: 20px;
+            position: absolute; top: 15px; right: 15px;
             background: var(--orange); color: white;
             padding: 8px 18px; border-radius: 30px;
-            font-size: 1rem; font-weight: 900; z-index: 200;
+            font-size: 0.9rem; font-weight: 900; z-index: 200;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         #player {
-            position: absolute; top: 5%; left: 5%;
+            position: absolute; top: 8%; left: 5%;
             width: 20%; max-width: 250px; min-width: 140px;
             z-index: 50; transition: left 0.7s ease-out;
         }
@@ -103,20 +109,13 @@
         .hint-glow { animation: pulse-glow 0.8s infinite; z-index: 100 !important; }
 
         #word-bar-container {
-            position: absolute; bottom: 40px; left: 50%; 
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(5px);
-            border: 4px solid var(--gold); padding: 12px 20px; 
-            border-radius: 40px; width: 85%; max-width: 750px;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9); border: 4px solid var(--gold); 
+            padding: 12px 20px; border-radius: 40px; width: 85%; max-width: 750px;
             z-index: 300; pointer-events: none; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        #word-display {
-            font-size: 1.1rem; color: #333; text-align: center; 
-            font-weight: 900; letter-spacing: 1px;
-        }
+        #word-display { font-size: 1.1rem; color: #333; text-align: center; font-weight: 900; }
 
         .full-screen-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -124,8 +123,6 @@
             flex-direction: column; justify-content: center; align-items: center;
             z-index: 500; color: white; text-align: center; padding: 20px;
         }
-
-        #level-title-screen h1 { font-size: 3rem; color: var(--gold); margin: 0; }
 
         #victory-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -135,29 +132,40 @@
 
         #victory-card {
             background: white; padding: 30px; border-radius: 30px;
-            border: 10px solid var(--gold); text-align: center;
-            width: 85%; max-width: 450px; transform: scale(0.8); transition: 0.4s;
+            border: 10px solid var(--gold); text-align: center; width: 80%;
+            max-width: 400px;
         }
-        #victory-card.show { transform: scale(1); }
-        #next-btn {
-            background: #4CAF50; color: white; padding: 15px 35px;
-            border: none; border-radius: 50px; font-size: 18px; font-weight: 900; cursor: pointer;
+
+        #congrats-overlay {
+            background: rgba(0,0,0,0.95);
         }
     </style>
 </head>
 <body>
 
 <div id="game-canvas">
+    <div id="instruction-overlay">
+        <div class="instruction-card">
+            <h2 style="color: var(--gold); margin-top: 0;">How to Play</h2>
+            <p style="line-height: 1.6; font-size: 1.1rem;">
+                Tap or Click anywhere in the water where you see a word-fish. 
+                The Panda will move to that spot and drop a fishing line. 
+                If the line touches the correct next word, you catch it!
+            </p>
+            <button style="background:var(--blue); color:white; padding:15px 40px; border:none; border-radius:50px; cursor:pointer; font-weight:bold; font-size: 1.2rem; margin-top: 10px;" onclick="startGame()">START GAME</button>
+        </div>
+    </div>
+
     <div id="level-badge">Level: 1</div>
     
-    <div class="controls">
-        <div id="hint-btn" class="btn-game" onclick="showHint(event)">HINT</div>
-        <div id="super-hint-btn" class="btn-game" onclick="showSuperHint(event)">SUPER<br>HINT (2)</div>
+    <div class="top-controls">
+        <div id="hint-btn" class="action-btn" onclick="showHint(event)">HINT</div>
+        <div id="super-hint-btn" class="action-btn" onclick="useSuperHint(event)">SUPER<br>HINT (2)</div>
     </div>
     
     <div id="player">
         <div id="rod-line"></div>
-        <img src="pandaa.png" id="cat-boat-img"> 
+        <img src="pandaa.png"> 
     </div>
     
     <div id="pond"></div>
@@ -167,26 +175,27 @@
     </div>
 
     <div id="level-title-screen" class="full-screen-overlay">
-        <h1 id="main-level-name">LEVEL 1</h1>
-        <p id="sub-level-title" style="font-size: 1.5rem; color: #fff;"></p>
+        <h1 id="main-level-name" style="font-size: 3rem; color: var(--gold);">LEVEL 1</h1>
+        <p id="sub-level-title" style="font-size: 1.5rem;"></p>
     </div>
 
     <div id="victory-overlay">
         <div id="victory-card">
             <h1 style="color:var(--orange); margin-top:0;">Level Clear!</h1>
-            <div id="victory-text" style="font-size: 18px; margin: 15px 0; color: #444; font-weight: bold;"></div>
-            <button id="next-btn" onclick="nextLevel()">CONTINUE</button>
+            <div id="victory-text" style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #333;"></div>
+            <button style="background:var(--green); color:white; padding:15px 30px; border:none; border-radius:50px; cursor:pointer; font-weight:bold;" onclick="nextLevel()">CONTINUE</button>
         </div>
+    </div>
+
+    <div id="congrats-overlay" class="full-screen-overlay">
+        <h1 style="font-size: 3.5rem; color: var(--gold); margin: 0;">🎉 CONGRATULATIONS! 🎉</h1>
+        <p style="font-size: 1.4rem; margin: 20px 0;">You are a Proverb Master!<br>You finished all levels.</p>
+        <div style="font-size: 4rem;">🏆</div>
+        <button style="background:var(--orange); color:white; padding:20px 40px; border:none; border-radius:50px; cursor:pointer; font-weight:bold; margin-top:30px; font-size: 1.2rem;" onclick="restartGame()">PLAY AGAIN</button>
     </div>
 </div>
 
 <script>
-    const levelTitles = {
-        1: "TIME & OPPORTUNITY PROVERBS", 2: "MINDSET & POSITIVITY PROVERBS",
-        3: "HEALTH & LIFE LESSON PROVERBS", 4: "FRIENDSHIP & CHARACTER PROVERBS",
-        5: "SUCCESS & HARD WORK PROVERBS", 6: "MISCELLANEOUS PROVERBS"
-    };
-
     const tiers = {
         1: ["TIME IS MONEY", "ALL IN GOOD TIME", "BETTER LATE THAN NEVER", "OPPORTUNITY KNOCKS BUT ONCE", "A STITCH IN TIME SAVES NINE"],
         2: ["COUNT YOUR BLESSINGS", "HASTE MAKES WASTE", "BETTER TO BE SAFE THAN SORRY", "GREAT MINDS THINK ALIKE", "GOOD THINGS COME IN SMALL PACKAGES"],
@@ -196,53 +205,64 @@
         6: ["LOVE IS BLIND", "SMALL IS BEAUTIFUL", "SEEING IS BELIEVING", "FIRST COME FIRST SERVED", "FOOLS RUSH IN WHERE ANGELS FEAR TO TREAD"]
     };
 
+    const levelTitles = { 
+        1: "TIME & OPPORTUNITY", 2: "MINDSET & POSITIVITY", 
+        3: "HEALTH & LIFE", 4: "CHARACTER", 
+        5: "SUCCESS", 6: "MISCELLANEOUS" 
+    };
+
     let solvedTotal = 0;
-    let currentTierNum = 1;
-    let subLevelIndex = 0;
     let superHintCount = 2;
-    let game = { proverbWords: [], step: 0, isFishing: false, isShowingSuperHint: false };
+    let game = { proverbWords: [], step: 0, isFishing: false, showingSuper: false };
+    let firstStart = true; // Added to handle initial overlay
+
+    function startGame() {
+        document.getElementById('instruction-overlay').style.display = 'none';
+        initLevel();
+    }
 
     function initLevel() {
-        const pond = document.getElementById('pond');
-        pond.innerHTML = ""; game.step = 0;
-        superHintCount = 2; // Reset super hint each sub-level
-        updateSuperHintButton();
-        
-        document.getElementById('victory-overlay').style.display = 'none';
-        
-        currentTierNum = Math.floor(solvedTotal / 5) + 1;
-        subLevelIndex = solvedTotal % 5;
-
-        if (currentTierNum > 6) {
-            alert("CONGRATULATIONS!");
-            solvedTotal = 0; initLevel(); return;
+        // If it's the very first time, show instructions instead of running logic
+        if (firstStart) {
+            firstStart = false;
+            return; 
         }
 
-        showLevelTitle(currentTierNum, levelTitles[currentTierNum], setupFishingGame);
+        document.getElementById('pond').innerHTML = "";
+        document.getElementById('victory-overlay').style.display = 'none';
+        document.getElementById('congrats-overlay').style.display = 'none';
+        game.step = 0;
+        superHintCount = 2;
+        updateSuperBtnUI();
+
+        let tierNum = Math.floor(solvedTotal / 5) + 1;
+        let subIdx = solvedTotal % 5;
+
+        if (subIdx === 0) {
+            const screen = document.getElementById('level-title-screen');
+            document.getElementById('main-level-name').innerText = `LEVEL ${tierNum}`;
+            document.getElementById('sub-level-title').innerText = levelTitles[tierNum];
+            screen.style.display = 'flex';
+            setTimeout(() => { 
+                screen.style.display = 'none'; 
+                startFish(tierNum, subIdx); 
+            }, 2000);
+        } else {
+            startFish(tierNum, subIdx);
+        }
     }
 
-    function showLevelTitle(num, title, callback) {
-        const screen = document.getElementById('level-title-screen');
-        document.getElementById('main-level-name').innerText = `LEVEL ${num}`;
-        document.getElementById('sub-level-title').innerText = title;
-        screen.style.display = 'flex';
-        setTimeout(() => {
-            screen.style.display = 'none';
-            callback();
-        }, 2000);
-    }
-
-    function setupFishingGame() {
-        document.getElementById('level-badge').innerText = `Level: ${currentTierNum}-${subLevelIndex + 1}`;
-        game.proverbWords = tiers[currentTierNum][subLevelIndex].split(" ");
-        const allWords = [...game.proverbWords].sort(() => Math.random() - 0.5);
+    function startFish(tier, idx) {
+        document.getElementById('level-badge').innerText = `Level: ${tier}-${idx + 1}`;
+        game.proverbWords = tiers[tier][idx].split(" ");
+        const shuffled = [...game.proverbWords].sort(() => Math.random() - 0.5);
         
-        allWords.forEach((word, index) => {
+        shuffled.forEach((word, i) => {
             const f = document.createElement('div');
             f.className = 'fish-bubble';
             f.innerText = word;
-            f.style.top = (25 + (index * (60/allWords.length))) + '%';
-            f.style.left = (Math.random() * 75 + 5) + '%';
+            f.style.top = (25 + (i * (60/shuffled.length))) + '%';
+            f.style.left = (Math.random() * 70 + 10) + '%';
             animateFish(f);
             document.getElementById('pond').appendChild(f);
         });
@@ -251,9 +271,9 @@
 
     function animateFish(el) {
         let x = parseFloat(el.style.left);
-        let speed = 0.04 + (Math.random() * 0.05);
-        let interval = setInterval(() => {
-            if (!el.parentElement) { clearInterval(interval); return; }
+        let speed = 0.05 + (Math.random() * 0.05);
+        setInterval(() => {
+            if (!el.parentElement) return;
             x += speed; if (x > 105) x = -15;
             el.style.left = x + '%';
         }, 20);
@@ -262,65 +282,69 @@
     function showHint(e) {
         e.stopPropagation();
         const btn = document.getElementById('hint-btn');
-        if(btn.style.opacity === "0.2") return;
+        if(btn.style.opacity === "0.4") return;
 
-        const targetWord = game.proverbWords[game.step].trim();
+        const target = game.proverbWords[game.step];
         const fishies = document.querySelectorAll('.fish-bubble');
-        let foundFish = null;
-
         fishies.forEach(f => {
-            if(f.innerText.trim() === targetWord) foundFish = f;
+            if(f.innerText === target) {
+                f.classList.add('hint-glow');
+                btn.style.opacity = "0.4";
+                setTimeout(() => { 
+                    f.classList.remove('hint-glow'); 
+                    btn.style.opacity = "1"; 
+                }, 2500);
+            }
         });
-
-        if(foundFish) {
-            foundFish.classList.add('hint-glow');
-            btn.style.opacity = "0.2";
-            setTimeout(() => foundFish.classList.remove('hint-glow'), 2500);
-            setTimeout(() => btn.style.opacity = "1", 4000); 
-        }
     }
 
-    function showSuperHint(e) {
+    function useSuperHint(e) {
         e.stopPropagation();
-        if (superHintCount <= 0 || game.isShowingSuperHint) return;
-
+        if (superHintCount <= 0 || game.showingSuper) return;
+        
         superHintCount--;
-        game.isShowingSuperHint = true;
-        updateSuperHintButton();
+        game.showingSuper = true;
+        updateSuperBtnUI();
 
-        const originalText = document.getElementById('word-display').innerText;
-        document.getElementById('word-display').innerText = tiers[currentTierNum][subLevelIndex];
+        const fullText = game.proverbWords.join(" ");
+        document.getElementById('word-display').innerText = fullText;
         document.getElementById('word-display').style.color = "var(--blue)";
 
         setTimeout(() => {
-            game.isShowingSuperHint = false;
+            game.showingSuper = false;
             document.getElementById('word-display').style.color = "#333";
             updateUI();
         }, 3000);
     }
 
-    function updateSuperHintButton() {
+    function updateSuperBtnUI() {
         const btn = document.getElementById('super-hint-btn');
         btn.innerHTML = `SUPER<br>HINT (${superHintCount})`;
         btn.style.opacity = superHintCount <= 0 ? "0.3" : "1";
     }
 
     const handleInput = (clientX, clientY, target) => {
-        if (game.isFishing || target.closest('.controls') || target.id === 'next-btn') return;
+        // Prevent fishing if overlay is active
+        if (document.getElementById('instruction-overlay').style.display !== 'none') return;
+        if (game.isFishing || target.closest('.top-controls') || target.id === 'next-btn') return;
+        
         game.isFishing = true;
+        
         const canvas = document.getElementById('game-canvas');
         const rect = canvas.getBoundingClientRect();
-        const relativeX = clientX - rect.left;
-        const relativeY = clientY - rect.top;
+        const relX = clientX - rect.left;
+        const relY = clientY - rect.top;
         const player = document.getElementById('player');
         const line = document.getElementById('rod-line');
-        player.style.left = (relativeX - (player.offsetWidth * 0.84)) + 'px';
+        
+        player.style.left = (relX - (player.offsetWidth * 0.8)) + 'px';
+        
         setTimeout(() => {
-            line.style.height = (relativeY - (player.offsetTop + (player.offsetHeight * 0.1))) + 'px';
+            line.style.height = (relY - (player.offsetTop + 40)) + 'px';
             setTimeout(() => {
-                checkHit(relativeX, relativeY);
+                checkHit(relX, relY);
                 line.style.height = '0px';
-                setTimeout(() => game.isFishing = false, 500);
+                setTimeout(() => game.isFishing = false, 400);
             }, 500);
         }, 600);
     };
@@ -329,47 +353,57 @@
     window.addEventListener('touchstart', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive: false});
 
     function checkHit(x, y) {
-        const targetWord = game.proverbWords[game.step].trim();
+        const target = game.proverbWords[game.step];
         document.querySelectorAll('.fish-bubble').forEach(f => {
             const r = f.getBoundingClientRect();
-            const canvasRect = document.getElementById('game-canvas').getBoundingClientRect();
-            if (x > (r.left - canvasRect.left) && x < (r.right - canvasRect.left) && y > (r.top - canvasRect.top) && y < (r.bottom - canvasRect.top)) {
-                if (f.innerText.trim() === targetWord) {
-                    f.style.transform = "scale(0)";
-                    setTimeout(() => f.remove(), 300);
-                    game.step++;
+            const cR = document.getElementById('game-canvas').getBoundingClientRect();
+            if (x > (r.left - cR.left) && x < (r.right - cR.left) && y > (r.top - cR.top) && y < (r.bottom - cR.top)) {
+                if (f.innerText === target) {
+                    f.remove(); 
+                    game.step++; 
                     updateUI();
-                    if(game.step === game.proverbWords.length) finishLevel();
-                } else {
-                    f.style.color = "red"; setTimeout(() => f.style.color = "#000", 500);
+                    if(game.step === game.proverbWords.length) finishSubLevel();
                 }
             }
         });
     }
 
-    function finishLevel() {
-        const fullSentence = tiers[currentTierNum][subLevelIndex];
-        document.getElementById('victory-text').innerText = fullSentence;
+    function updateUI() {
+        if(game.showingSuper) return;
+        let str = "";
+        game.proverbWords.forEach((w, i) => str += (i < game.step) ? w + " " : "____ ");
+        document.getElementById('word-display').innerText = str;
+    }
+
+    function finishSubLevel() {
+        const fullText = game.proverbWords.join(" ");
+        document.getElementById('victory-text').innerText = fullText;
         document.getElementById('victory-overlay').style.display = 'flex';
-        setTimeout(() => document.getElementById('victory-card').classList.add('show'), 50);
-        const msg = new SpeechSynthesisUtterance(fullSentence.toLowerCase());
-        window.speechSynthesis.speak(msg);
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(fullText.toLowerCase()));
     }
 
     function nextLevel() {
         solvedTotal++;
+        if (solvedTotal >= 30) {
+            showGrandFinale();
+        } else {
+            initLevel();
+        }
+    }
+
+    function showGrandFinale() {
+        document.getElementById('victory-overlay').style.display = 'none';
+        document.getElementById('congrats-overlay').style.display = 'flex';
+        const msg = new SpeechSynthesisUtterance("Congratulations! You have finished all the levels!");
+        window.speechSynthesis.speak(msg);
+    }
+
+    function restartGame() {
+        solvedTotal = 0;
         initLevel();
     }
 
-    function updateUI() {
-        if(game.isShowingSuperHint) return;
-        let displayStr = "";
-        for(let i=0; i < game.proverbWords.length; i++) {
-            displayStr += (i < game.step) ? game.proverbWords[i] + " " : "____ ";
-        }
-        document.getElementById('word-display').innerText = displayStr;
-    }
-
+    // Initialize (this will now wait for the button click via firstStart logic)
     initLevel();
 </script>
 </body>
