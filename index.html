@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Proverb Quest - Phone View</title>
+    <title>Proverb Quest - Voice Optimized</title>
     <style>
         :root {
             --gold: #FFCA28;
@@ -11,110 +11,118 @@
             --orange: #FF5722;
         }
 
-        /* Essential for mobile height bugs */
-        html, body { 
-            height: 100%; 
+        html { height: -webkit-fill-available; }
+
+        body { 
             margin: 0; padding: 0; 
             overflow: hidden; 
-            background: #222;
-            font-family: 'Arial Rounded MT Bold', sans-serif;
-            touch-action: none;
-        }
-
-        body {
+            font-family: 'Arial Rounded MT Bold', sans-serif; 
+            touch-action: none; 
+            background: #222; 
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            height: -webkit-fill-available;
         }
         
         #game-canvas {
             width: 100vw; 
             height: 100vh;
+            height: -webkit-fill-available;
             background-image: url('im.png'); 
             background-size: cover; 
             background-repeat: no-repeat;
             background-position: center;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        /* Mobile specific adjustments */
+        @media (min-width: 1024px) {
+            #game-canvas {
+                width: 90vw;
+                height: 85vh;
+                border: 8px solid var(--gold);
+                border-radius: 20px;
+            }
+        }
+
         #hint-btn {
-            position: absolute; top: 10px; left: 10px;
-            width: 45px; height: 45px; /* Smaller for phone */
-            background: rgba(183, 149, 11, 0.7); 
+            position: absolute; top: 20px; left: 20px;
+            width: 55px; height: 55px; 
+            background: rgba(183, 149, 11, 0.6); 
             border: 2px solid rgba(255, 255, 255, 0.5); 
             border-radius: 50%;
-            font-weight: 900; font-size: 10px;
+            font-weight: 900; font-size: 11px;
             color: white; cursor: pointer; z-index: 200; 
             display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(3px);
+            transition: all 0.3s;
         }
 
         #level-badge {
-            position: absolute; top: 10px; right: 10px;
+            position: absolute; top: 20px; right: 20px;
             background: var(--orange); color: white;
-            padding: 5px 12px; border-radius: 20px;
-            font-size: 0.8rem; font-weight: 900; z-index: 200;
+            padding: 8px 18px; border-radius: 30px;
+            font-size: 1rem; font-weight: 900; z-index: 200;
         }
 
         #player {
-            position: absolute; top: 2%; left: 5%;
-            width: 30%; /* Larger percentage for small screens */
-            max-width: 180px;
+            position: absolute; top: 5%; left: 5%;
+            width: 20%; max-width: 250px; min-width: 140px;
             z-index: 50; transition: left 0.7s ease-out;
         }
         #player img { width: 100%; pointer-events: none; }
 
         #rod-line {
-            position: absolute; top: 15%; left: 78%; 
+            position: absolute; top: 10%; left: 77%; 
             width: 2px; height: 0; background: #eeeeee; 
             transition: height 0.5s ease-in; z-index: 40;
         }
 
         .fish-bubble {
-            position: absolute; 
-            width: 85px; height: 50px; /* Scaled down for mobile */
+            position: absolute; width: 110px; height: 65px;
             background-image: url('fish .png'); background-size: contain; 
             background-repeat: no-repeat; background-position: center;
             display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 900; color: #000;
+            font-size: 13px; font-weight: 900; color: #000;
             cursor: pointer; z-index: 20; text-transform: uppercase;
-            padding-bottom: 4px; text-align: center;
+            padding-bottom: 5px; text-align: center;
         }
 
         @keyframes pulse-glow {
-            0% { filter: drop-shadow(0 0 5px #FFD700); transform: scale(1); }
-            50% { filter: drop-shadow(0 0 15px #FFD700); transform: scale(1.1); }
-            100% { filter: drop-shadow(0 0 5px #FFD700); transform: scale(1); }
+            0% { filter: drop-shadow(0 0 5px #FFD700) brightness(1); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 25px #FFD700) brightness(1.6); transform: scale(1.1); }
+            100% { filter: drop-shadow(0 0 5px #FFD700) brightness(1); transform: scale(1); }
         }
         .hint-glow { animation: pulse-glow 0.8s infinite; z-index: 100 !important; }
 
         #word-bar-container {
-            position: absolute; bottom: 15px; left: 50%; 
+            position: absolute; bottom: 40px; left: 50%; 
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.9); 
-            border: 3px solid var(--gold); padding: 8px 15px; 
-            border-radius: 25px; width: 90%; 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(5px);
+            border: 4px solid var(--gold); padding: 12px 20px; 
+            border-radius: 40px; width: 85%; max-width: 750px;
             z-index: 300; pointer-events: none; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         #word-display {
-            font-size: 0.9rem; color: #333; text-align: center; 
-            font-weight: 900; letter-spacing: 0.5px;
-            word-wrap: break-word;
+            font-size: 1.1rem; color: #333; text-align: center; 
+            font-weight: 900; letter-spacing: 1px;
         }
 
         .full-screen-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none;
+            background: rgba(0,0,0,0.85); display: none;
             flex-direction: column; justify-content: center; align-items: center;
-            z-index: 500; color: white; text-align: center; padding: 15px;
+            z-index: 500; color: white; text-align: center; padding: 20px;
         }
 
-        #level-title-screen h1 { font-size: 2rem; color: var(--gold); }
-        #sub-level-title { font-size: 1rem; color: #fff; }
-        #proverb-text-display { font-size: 1.4rem; color: var(--gold); font-style: italic; }
+        #level-title-screen h1 { font-size: 3rem; color: var(--gold); margin: 0; }
+        #proverb-text-display { font-size: 2rem; color: var(--gold); font-style: italic; margin-top: 20px; }
 
         #victory-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -123,15 +131,21 @@
         }
 
         #victory-card {
-            background: white; padding: 20px; border-radius: 20px;
-            border: 6px solid var(--gold); text-align: center;
-            width: 85%; transform: scale(0.9); transition: 0.4s;
+            background: white; padding: 30px; border-radius: 30px;
+            border: 10px solid var(--gold); text-align: center;
+            width: 85%; max-width: 450px; transform: scale(0.8); transition: 0.4s;
         }
         #victory-card.show { transform: scale(1); }
-        
         #next-btn {
-            background: #4CAF50; color: white; padding: 12px 30px;
-            border: none; border-radius: 30px; font-size: 16px; font-weight: 900;
+            background: #4CAF50; color: white; padding: 15px 35px;
+            border: none; border-radius: 50px; font-size: 18px; font-weight: 900; cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            #word-bar-container { bottom: 35px; width: 90%; }
+            #player { width: 45%; }
+            #level-title-screen h1 { font-size: 2.2rem; }
+            #proverb-text-display { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -154,25 +168,24 @@
 
     <div id="level-title-screen" class="full-screen-overlay">
         <h1 id="main-level-name">LEVEL 1</h1>
-        <p id="sub-level-title"></p>
+        <p id="sub-level-title" style="font-size: 1.5rem; color: #fff;"></p>
     </div>
 
     <div id="proverb-preview-screen" class="full-screen-overlay">
-        <h2 style="font-size: 1rem;">MEMORIZE:</h2>
+        <h2 style="font-size: 1.2rem;">MEMORIZE THE PROVERB:</h2>
         <div id="proverb-text-display"></div>
     </div>
 
     <div id="victory-overlay">
         <div id="victory-card">
-            <h2 style="color:var(--orange); margin:0;">Level Clear!</h2>
-            <div id="victory-text" style="font-size: 16px; margin: 15px 0; color: #444; font-weight: bold;"></div>
+            <h1 style="color:var(--orange); margin-top:0;">Level Clear!</h1>
+            <div id="victory-text" style="font-size: 18px; margin: 15px 0; color: #444; font-weight: bold;"></div>
             <button id="next-btn" onclick="nextLevel()">CONTINUE</button>
         </div>
     </div>
 </div>
 
 <script>
-    // LOGIC AND SENTENCES REMAIN COMPLETELY UNCHANGED
     const levelTitles = {
         1: "TIME & OPPORTUNITY PROVERBS",
         2: "MINDSET & POSITIVITY PROVERBS",
@@ -189,6 +202,7 @@
         4: ["MANNERS MAKETH MAN", "CHARITY BEGINS AT HOME", "ACTIONS SPEAK LOUDER THAN WORDS", "DONT JUDGE A BOOK BY ITS COVER", "A FRIEND IN NEED IS A FRIEND INDEED"],
         5: ["NO PAIN NO GAIN", "PRACTICE MAKES PERFECT", "BIRDS OF A FEATHER FLOCK TOGETHER", "THE GRASS IS ALWAYS GREENER", "BEAUTY IS IN THE EYE OF THE BEHOLDER"],
         6: ["LOVE IS BLIND", "SMALL IS BEAUTIFUL", "SEEING IS BELIEVING", "FIRST COME FIRST SERVED", "FOOLS RUSH IN WHERE ANGELS FEAR TO TREAD"]
+       
     };
 
     let solvedTotal = 0;
@@ -224,6 +238,8 @@
         document.getElementById('sub-level-title').innerText = title;
         screen.style.display = 'flex';
         
+        // Voice is NOT called here anymore.
+
         setTimeout(() => {
             screen.style.display = 'none';
             callback();
@@ -236,6 +252,7 @@
         document.getElementById('proverb-text-display').innerText = fullProverb;
         screen.style.display = 'flex';
         
+        // Voice ONLY triggers for the proverb itself
         const msg = new SpeechSynthesisUtterance();
         msg.text = fullProverb.toLowerCase();
         window.speechSynthesis.speak(msg);
@@ -255,9 +272,8 @@
             const f = document.createElement('div');
             f.className = 'fish-bubble';
             f.innerText = word;
-            // Spread fish better for small vertical space
-            f.style.top = (30 + (index * (50/allWords.length))) + '%';
-            f.style.left = (Math.random() * 70 + 5) + '%';
+            f.style.top = (25 + (index * (60/allWords.length))) + '%';
+            f.style.left = (Math.random() * 75 + 5) + '%';
             animateFish(f);
             document.getElementById('pond').appendChild(f);
         });
@@ -266,12 +282,12 @@
 
     function animateFish(el) {
         let x = parseFloat(el.style.left);
-        let speed = 0.05 + (Math.random() * 0.05);
+        let speed = 0.04 + (Math.random() * 0.05);
         let interval = setInterval(() => {
             if (!el.parentElement) { clearInterval(interval); return; }
-            x += speed; if (x > 110) x = -20;
+            x += speed; if (x > 105) x = -15;
             el.style.left = x + '%';
-        }, 30);
+        }, 20);
     }
 
     function showHint(e) {
@@ -343,6 +359,7 @@
         document.getElementById('victory-overlay').style.display = 'flex';
         setTimeout(() => document.getElementById('victory-card').classList.add('show'), 50);
         
+        // Voice speaks the completed proverb as a reward
         const msg = new SpeechSynthesisUtterance(fullSentence.toLowerCase());
         window.speechSynthesis.speak(msg);
     }
