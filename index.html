@@ -25,7 +25,7 @@
         
         #game-canvas {
             width: 100vw; 
-            height: 100dvh; /* Dynamic height for mobile browsers */
+            height: 100dvh; 
             background-image: url('im.png'); background-size: cover; 
             background-repeat: no-repeat; background-position: center;
             position: relative; overflow: hidden;
@@ -35,7 +35,6 @@
             #game-canvas { width: 90vw; height: 85vh; border: 8px solid var(--gold); border-radius: 20px; }
         }
 
-        /* --- CENTERED OVERLAYS --- */
         .full-screen-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); 
@@ -82,7 +81,7 @@
 
         #player {
             position: absolute; 
-            top: 12%; /* Adjusted for better water alignment on mobile */
+            top: 12%; 
             left: 5%;
             width: 25%; max-width: 200px; min-width: 120px;
             z-index: 50; transition: left 0.7s ease-out;
@@ -91,7 +90,7 @@
 
         #rod-line {
             position: absolute; 
-            top: 15%; left: 78%; /* Aligns with the end of the panda's rod */
+            top: 10%; left: 77%; 
             width: 2px; height: 0; background: #eeeeee; 
             transition: height 0.5s ease-in; z-index: 40;
         }
@@ -104,7 +103,12 @@
             font-size: 11px; font-weight: 900; color: #000;
             cursor: pointer; z-index: 20; text-transform: uppercase;
             padding-bottom: 5px; text-align: center;
+            /* FIX: Ensure the text inside doesn't steal the touch/click event */
+            user-select: none;
         }
+        
+        /* This ensures clicking the text inside still counts as clicking the fish */
+        .fish-bubble * { pointer-events: none; }
 
         #word-bar-container {
             position: absolute; 
@@ -117,7 +121,6 @@
 
         #word-display { font-size: 1rem; color: #333; text-align: center; font-weight: 900; }
 
-        /* Animation Keyframes */
         @keyframes shake-red {
             0% { transform: translateX(0); }
             25% { transform: translateX(-8px); filter: sepia(1) saturate(5); }
@@ -366,7 +369,6 @@
     }
 
     const handleInput = (clientX, clientY, target) => {
-        // Stop fishing if overlays are open or UI elements are clicked
         if (document.getElementById('instruction-overlay').style.display !== 'none' || 
             document.getElementById('level-select-overlay').style.display !== 'none' ||
             document.getElementById('congrats-overlay').style.display === 'flex' ||
@@ -395,7 +397,11 @@
     };
 
     window.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY, e.target));
-    window.addEventListener('touchstart', (e) => handleInput(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive: false});
+    window.addEventListener('touchstart', (e) => {
+        // Prevent scrolling while fishing
+        if (game.isFishing) e.preventDefault();
+        handleInput(e.touches[0].clientX, e.touches[0].clientY, e.target);
+    }, {passive: false});
 
     function updateUI() {
         if(game.showingSuper) return;
